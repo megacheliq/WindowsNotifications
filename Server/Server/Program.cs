@@ -2,15 +2,12 @@
 
 namespace Server;
 
-class Program
+internal class Program
 {
-    static async Task Main(string[] args)
+    private static async Task Main(string[] args)
     {
-        Log.Logger = new LoggerConfiguration()
-            .WriteTo.Console() // Логирование в консоль
-            .WriteTo.File("logs/server.log", rollingInterval: RollingInterval.Day) // Логирование в файл с ежедневной ротацией
-            .CreateLogger();
-        
+        ConfigureLogging();
+
         try
         {
             Log.Information("Starting application...");
@@ -18,25 +15,11 @@ class Program
             var server = new TcpNotificationServer(5000);
             server.Start();
 
-            Console.WriteLine("Press 'n' to send a notification, or 'q' to quit.");
+            Log.Information("Server is running. Press 'n' to send a notification, or 'q' to quit.");
 
-            while (true)
-            {
-                var input = Console.ReadKey(true).Key;
-                if (input == ConsoleKey.N)
-                {
-                    Console.Write("Enter notification message: ");
-                    var message = Console.ReadLine();
-                    if (message != null) server.SendNotification(message);
-                }
-                else if (input == ConsoleKey.Q)
-                {
-                    server.Stop();
-                    break;
-                }
-            }
-            
-            await Task.CompletedTask;
+            await HandleUserInputAsync(server);
+
+            Log.Information("Application is shutting down...");
         }
         catch (Exception ex)
         {
@@ -45,6 +28,51 @@ class Program
         finally
         {
             await Log.CloseAndFlushAsync();
+        }
+    }
+
+    private static void ConfigureLogging()
+    {
+        Log.Logger = new LoggerConfiguration()
+            .WriteTo.Console()
+            .WriteTo.File("logs/server.log", rollingInterval: RollingInterval.Day)
+            .Enrich.FromLogContext()
+            .CreateLogger();
+    }
+
+    private static async Task HandleUserInputAsync(TcpNotificationServer server)
+    {
+        while (true)
+        {
+            Console.WriteLine("Enter 'n' to send a notification or 'q' to quit:");
+            var input = Console.ReadKey(true).Key;
+
+            switch (input)
+            {
+                case ConsoleKey.N:
+                    Console.Write("Enter notification message: ");
+                    var message = Console.ReadLine();
+                    if (!string.IsNullOrWhiteSpace(message))
+                    {
+                        server.SendNotification(message);
+                        Log.Information("Notification sent: {Message}", message);
+                    }
+                    else
+                    {
+                        Log.Warning("Empty message, notification was not sent.");
+                    }
+                    break;
+
+                case ConsoleKey.Q:
+                    server.Stop();
+                    return;
+
+                default:
+                    Console.WriteLine("Invalid input. Press 'n' to send a notification or 'q' to quit.");
+                    break;
+            }
+
+            await Task.Delay(100);
         }
     }
 }

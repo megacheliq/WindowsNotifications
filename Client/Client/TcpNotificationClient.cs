@@ -6,7 +6,7 @@ public class TcpNotificationClient
 {
     private readonly string _serverIp;
     private readonly int _serverPort;
-    private TcpClient _client;
+    private TcpClient? _client;
 
     public TcpNotificationClient(string serverIp, int serverPort)
     {
@@ -16,25 +16,33 @@ public class TcpNotificationClient
 
     public async Task StartAsync()
     {
-        try
+        while (true)
         {
-            Console.WriteLine("Connecting to server...");
-            
-            _client = new TcpClient();
-            await _client.ConnectAsync(_serverIp, _serverPort);
-            
-            Console.WriteLine("Connected to server.");
+            try
+            {
+                Console.WriteLine("Connecting to server...");
 
-            await ListenForNotificationsAsync();
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Error connecting to server: {ex.Message}");
+                _client = new TcpClient();
+                await _client.ConnectAsync(_serverIp, _serverPort);
+
+                Console.WriteLine($"Connected to server {_serverIp}:{_serverPort}");
+                await ListenForNotificationsAsync();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error connecting to server: {ex.Message}");
+            }
+
+            Console.WriteLine("Reconnecting in 10 seconds...");
+            await Task.Delay(TimeSpan.FromSeconds(10));
         }
     }
-
+    
     private async Task ListenForNotificationsAsync()
     {
+        if (_client is null)
+            return;
+        
         var buffer = new byte[1024];
         var stream = _client.GetStream();
 
@@ -62,7 +70,7 @@ public class TcpNotificationClient
         _client.Close();
     }
 
-    private static void ShowNotification(string title, string message)
+    private void ShowNotification(string title, string message)
     {
         var toastXml = ToastNotificationManager.GetTemplateContent(ToastTemplateType.ToastText02);
         var textNodes = toastXml.GetElementsByTagName("text");
@@ -71,12 +79,47 @@ public class TcpNotificationClient
         textNodes[1].AppendChild(toastXml.CreateTextNode(message)); // Текст уведомления
 
         var toast = new ToastNotification(toastXml);
+        
+        toast.Activated += (s, e) =>
+        {
+            Console.WriteLine($"Уведомление '{message}' прочитано.");
+            SendReadConfirmation(message);
+        };
+        
         ToastNotificationManager.CreateToastNotifier("TcpNotificationClient").Show(toast);
+    }
+    
+    private void SendReadConfirmation(string message)
+    {
+        if (_client?.Connected != true)
+        {
+            Console.WriteLine("Cannot send confirmation, client is not connected.");
+            return;
+        }
+        
+        try
+        {
+            var stream = _client.GetStream();
+            var confirmationMessage = Encoding.UTF8.GetBytes($"Read:{message}");
+            stream.Write(confirmationMessage, 0, confirmationMessage.Length);
+            Console.WriteLine("Confirmation sent to server.");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error sending confirmation: {ex.Message}");
+        }
     }
 
     public void Stop()
     {
-        _client?.Close();
-        Console.WriteLine("Client stopped.");
+        try
+        {
+            _client?.Close();
+            Console.WriteLine("Client stopped.");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error while stopping client: {ex.Message}");
+        }
     }
 }
