@@ -1,0 +1,19 @@
+﻿<Window x:Class="ClientWpf.NotificationWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        WindowStyle="None"
+        AllowsTransparency="True"
+        Background="Transparent"
+        Topmost="True"
+        ShowInTaskbar="False"
+        Width="600"
+        Height="400"
+        ResizeMode="NoResize">
+    <Grid Name="GridBackground" Background="red">
+        <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+            <TextBlock Text="Title" FontWeight="Bold" FontSize="14" Foreground="Black" Name="TitleBlock" />
+            <TextBlock Text="Message" Foreground="Black" Name="MessageBlock" />
+            <Button Content="Прочитал" Margin="10" Padding="5" Click="CloseNotification"/>
+        </StackPanel>
+    </Grid>
+</Window>
