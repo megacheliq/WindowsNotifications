@@ -1,4 +1,4 @@
-﻿<Window x:Class="ClientWpf.NotificationWindow"
+<Window x:Class="ClientWpf.NotificationWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         WindowStyle="None"
@@ -6,14 +6,24 @@
         Background="Transparent"
         Topmost="True"
         ShowInTaskbar="False"
-        Width="600"
-        Height="400"
+        Width="900"
+        Height="450"
         ResizeMode="NoResize">
     <Grid Name="GridBackground" Background="red">
-        <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
-            <TextBlock Text="Title" FontWeight="Bold" FontSize="14" Foreground="Black" Name="TitleBlock" />
-            <TextBlock Text="Message" Foreground="Black" Name="MessageBlock" />
-            <Button Content="Прочитал" Margin="10" Padding="5" Click="CloseNotification"/>
+        <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Height="450" Width="900">
+            <TextBlock Text="Внимание!" FontWeight="Bold" FontSize="44" Foreground="White" TextAlignment="Center"/>
+            <TextBlock Text="Обнаружен алкоголь при тестировании персонала"
+                       FontWeight="Bold" FontSize="33" Padding="0,0,0,20" Foreground="White" TextAlignment="Center"/>
+ 
+            <TextBlock Text="Матрос" Margin="10" FontWeight="Bold" FontSize="25" Foreground="White" />
+            <TextBlock Text="Иванов Иван Иванович" Margin="10" FontWeight="Bold" FontSize="25" Foreground="White" />
+            <TextBlock Text="0.10 мг/л" Margin="10" FontWeight="Bold" FontSize="25" Foreground="White" />
+            <TextBlock Text="21.09.2025 12:19:43" Margin="10" FontWeight="Bold" FontSize="25" Foreground="White" />
+            <TextBlock Text="Fesco Moneron / AI-1223036" Margin="10" FontWeight="Bold" FontSize="25" Foreground="White" />
+ 
+            <!--<TextBlock Text="Title" FontWeight="Bold" FontSize="14" Foreground="Black" x:Name="TitleBlock" />
+            <TextBlock Text="Message" Foreground="Black" x:Name="MessageBlock" />-->
+            <Button Content="Информацию принял" Margin="10" Padding="5" FontSize="25" Click="CloseNotification" Cursor="Hand"/>
         </StackPanel>
     </Grid>
 </Window>
